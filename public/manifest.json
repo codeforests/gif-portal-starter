@@ -8,12 +8,12 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "solana.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "64x64"
     },
     {
-      "src": "logo512.png",
+      "src": "solana512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
