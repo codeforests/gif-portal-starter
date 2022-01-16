@@ -13,18 +13,11 @@ import { Program, Provider, web3 } from '@project-serum/anchor';
 const TWITTER_HANDLE = 'codeforests';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 
-const TEST_GIFS = [
-	'https://i.giphy.com/media/L59aKIC2MFyfUfrz3n/giphy.webp',
-	'https://i.giphy.com/media/JTV3ciE3YTDycJXhmq/giphy.webp',
-	'https://media0.giphy.com/media/Eo0qemXgXQ2j47Pd5J/giphy.webp?cid=ecf05e47n4hltq7qgb25ukkvysnm9bopwlrq6lpl3jtfd0cy&rid=giphy.webp&ct=g',
-	'https://i.giphy.com/media/mG2VJTfGpaUBlCuQFE/giphy.webp'
-]
-
 
 const { SystemProgram, Keypair } = web3;
 const arr = Object.values(kp._keypair.secretKey)
 const secret = new Uint8Array(arr)
-const baseAccount = web3.Keypair.fromSecretKey(secret)
+const baseAccount = Keypair.fromSecretKey(secret)
 const programID = new PublicKey(idl.metadata.address);
 const network = clusterApiUrl('devnet');
 const opts = {
@@ -32,13 +25,15 @@ const opts = {
 }
 
 
-
-
 const App = () => {
 
   const [walletAddress, setWalletAddress] = useState(null);
   const [inputValue, setInputValue] = useState('');
   const [gifList, setGifList] = useState([]);
+
+  const shortenAddress = (str) => {
+    return str.substring(0, 6) + "..." + str.substring(str.length - 6);
+  }
 
   const getProvider = () => {
     const connection = new Connection(network, opts.preflightCommitment);
@@ -71,6 +66,22 @@ const App = () => {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const getGifList = async() => {
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+      const account = await program.account.baseAccount.fetch(baseAccount.publicKey);
+      
+      console.log("Got the account", account)
+      setGifList(account.gifList)
+  
+    } catch (error) {
+      console.log("Error in getGifList: ", error)
+      setGifList(null);
+    }
+  }
+
   useEffect( () => {
 
     const onLoad = async () => {
@@ -85,7 +96,7 @@ const App = () => {
       console.log("retrieve GIF list");
       getGifList();
     }
-  }, [walletAddress]);
+  }, [walletAddress, getGifList]);
 
   const connectWallet = async () => {
 
@@ -117,20 +128,6 @@ const App = () => {
     }
   }
 
-  const getGifList = async() => {
-    try {
-      const provider = getProvider();
-      const program = new Program(idl, programID, provider);
-      const account = await program.account.baseAccount.fetch(baseAccount.publicKey);
-      
-      console.log("Got the account", account)
-      setGifList(account.gifList)
-  
-    } catch (error) {
-      console.log("Error in getGifList: ", error)
-      setGifList(null);
-    }
-  }
 
 
   const onInputChange = (event) => {
@@ -195,7 +192,7 @@ const App = () => {
           {gifList.map(gif => (
             <div className="gif-item" key={gif}>
               <img src={gif.gifLink} alt={gif.gifLink} />
-              <p className='sub-text'> {gif.userAddress.toString()}</p>
+              <p className='sub-text'> {shortenAddress(gif.userAddress.toString())}</p>
             </div>
           ))}
         </div>
